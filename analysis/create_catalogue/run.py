@@ -83,7 +83,11 @@ def generate_galaxies():
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
         # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
+<<<<<<< HEAD
 
+=======
+        print(fluxes)
+>>>>>>> 36e945233ac3cb7b124e772455eed7ec908da79f
 
     return hf
 
@@ -180,8 +184,13 @@ if __name__ == "__main__":
     # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
+<<<<<<< HEAD
     z = 10.
     N = 100
+=======
+    z = 10.0
+    N = 10
+>>>>>>> 36e945233ac3cb7b124e772455eed7ec908da79f
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes

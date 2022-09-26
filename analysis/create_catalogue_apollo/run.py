@@ -69,6 +69,7 @@ def generate_galaxies():
 
         for filter in filters:
             hf[f'fnu/{filter}'][i] = fluxes[filter].value
+            print(filter, fluxes[filter].value)
 
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
@@ -168,7 +169,12 @@ if __name__ == "__main__":
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
+<<<<<<< HEAD
     z = 7.+0.01*(float(sys.argv[1])-1.)
+=======
+    z = 7.+0.01*(float(sys.argv[1])-1)
+    z = 7.
+>>>>>>> 36e945233ac3cb7b124e772455eed7ec908da79f
     N = 10
 
     # --- calculate broadband luminosities
