@@ -3,13 +3,7 @@
 
 import numpy as np
 
-
-# import interrogator
-# from interrogator.sed import models
-# import interrogator.sed.sfzh
-# import flare.filters
-# import flare.plt as fplt
-# from interrogator.sed.core import rebin
+import matplotlib.pyplot as plt
 
 from synthesizer.filters import SVOFilterCollection
 from synthesizer.grid import SpectralGrid
@@ -61,24 +55,35 @@ def generate_galaxies():
         sfh = SFH_({'duration': 10**log10duration * Myr })
         Zh = ZH_({'log10Z': log10Z})
 
+
         sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
 
+        tauV = 10**log10tauV
+
         galaxy = SEDGenerator(grid, sfzh)
-        galaxy.pacman(fesc = fesc, fesc_LyA = fesc_LyA, tauV = 10**log10tauV)
+        galaxy.pacman(fesc = fesc, fesc_LyA = fesc_LyA, tauV = tauV)
+
 
         sed = galaxy.spectra['total'] # choose total SED
         sed.get_fnu(cosmo, z) # generate observed frame spectra
 
+        plt.plot(sed.lamz, sed.fnu)
+        plt.show()
+
         # --- measure broadband fluxes
         fluxes = sed.get_broadband_fluxes(fc)
 
+        for filter, flux in fluxes.items(): print(f'{filter}: {flux}')  # print broadband fluxes
+
+
         for filter in filters:
             hf[f'fnu/{filter}'][i] = fluxes[filter].value
+            print(filter, fluxes[filter].value)
 
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
         # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
-        # print(fluxes)
+
 
     return hf
 
@@ -170,18 +175,19 @@ if __name__ == "__main__":
 
     from astropy.cosmology import Planck18 as cosmo
 
-    grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
+    # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
+    grid_name = 'bpass-v2.2.1-bin_chab-100_cloudy-v17.03_log10Uref-2'
+    # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 10.0
-    N = 10
+    z = 10.
+    N = 100
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
     fc = SVOFilterCollection(filters, new_lam = grid.lam * (1.+z)) # used for synthesizer
     fco = SVOFilterCollection(filters) # used for EAZY
 
-    t1 = time.time()
 
     hf = generate_galaxies()
 
@@ -189,16 +195,14 @@ if __name__ == "__main__":
     reference_filter = 'JWST/NIRCam.F200W'
     SNR = 20.
 
-    hf = make_observations(hf = hf)
-
-    templates = ['tweak_fsps_QSF_12_v3','Larson22', 'Wilkins22.bpass-2.2.1']
-    # templates = ['Larson22']
-    # templates = ['Wilkins22.bpass-2.2.1']
-    templates = ['tweak_fsps_QSF_12_v3']
-
-    hf = run_eazy(hf = hf)
-
-    t2 = time.time()
-    print((t2-t1)/N)
-
-    hf.flush()
+    # hf = make_observations(hf = hf)
+    #
+    # templates = ['tweak_fsps_QSF_12_v3','Larson22', 'Wilkins22.bpass-2.2.1']
+    # # templates = ['Larson22']
+    # # templates = ['Wilkins22.bpass-2.2.1']
+    # templates = ['tweak_fsps_QSF_12_v3']
+    #
+    # hf = run_eazy(hf = hf)
+    #
+    #
+    # hf.flush()

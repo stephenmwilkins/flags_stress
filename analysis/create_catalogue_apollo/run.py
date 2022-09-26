@@ -21,7 +21,7 @@ from flags.pz import eazy
 
 uniform = lambda low, high, N: np.random.uniform(low = low, high = high, size = N)
 
-np.random.seed(4484)
+# np.random.seed(4484)
 
 
 template_combos = {}
@@ -168,15 +168,14 @@ if __name__ == "__main__":
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 7.+0.01*float(sys.argv[1])
-    N = 1000
+    z = 7.+0.01*(float(sys.argv[1])-1.)
+    N = 10
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
     fc = SVOFilterCollection(filters, new_lam = grid.lam * (1.+z)) # used for synthesizer
     fco = SVOFilterCollection(filters) # used for EAZY
 
-    t1 = time.time()
 
     hf = generate_galaxies()
 
@@ -192,8 +191,5 @@ if __name__ == "__main__":
     templates = ['tweak_fsps_QSF_12_v3']
 
     hf = run_eazy(hf = hf)
-
-    t2 = time.time()
-    print((t2-t1)/N)
 
     hf.flush()
