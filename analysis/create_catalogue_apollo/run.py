@@ -1,16 +1,22 @@
 
 
-
+import sys
 import numpy as np
-import interrogator
-from interrogator.sed import models
-import interrogator.sed.sfzh
-import flare.filters
-import flare.plt as fplt
-from interrogator.sed.core import rebin
 import h5py
-from flags.pz import eazy
+from unyt import yr, Myr
 import time
+
+from synthesizer.filters import SVOFilterCollection
+from synthesizer.grid import SpectralGrid
+from synthesizer.binned import SFH, ZH, generate_sfzh, SEDGenerator
+from synthesizer.plt import single, single_histxy, mlabel
+from flags.pz import eazy
+
+
+
+
+
+
 
 
 uniform = lambda low, high, N: np.random.uniform(low = low, high = high, size = N)
@@ -32,9 +38,7 @@ def generate_galaxies():
 
     parameter_values['log10duration'][1] = np.log10(cosmo.age(z).to('yr').value)
 
-    print(parameter_values['log10duration'])
-
-    hf = h5py.File(f'data/{scenario}/{z:.2f}.hf', 'w')
+    hf = h5py.File(f'out/{scenario}/{z:.2f}.hf', 'w')
 
     hf[f'parameters/z'] = np.ones(N)*z
 
@@ -46,18 +50,34 @@ def generate_galaxies():
     for filter in filters:
         hf[f'fnu/{filter}'] = np.zeros(N)
 
-    for i, (log10duration, log10Z, fesc, log10tau_V) in enumerate(zip(parameter_values['log10duration'], parameter_values['log10Z'],parameter_values['fesc'],parameter_values['log10tau_V'])):
-        sfzh, sfr = interrogator.sed.sfzh.constant(SPS.grid['log10age'], SPS.grid['log10Z'] , {'log10_duration': log10duration, 'log10Z': log10Z, 'log10M*': 1.})
-        SED = SPS.get_Lnu(sfzh, {'fesc': fesc, 'log10tau_V': log10tau_V}, dust = ('simple', {'slope':-1}))
-        SED.total.get_fnu(cosmo, z) # calculate observer frame wavelength
-        SED.total.get_Fnu(F) # generates Fnu (broad band fluxes)
+    for i, (log10duration, log10Z, fesc, fesc_LyA, log10tauV) in enumerate(zip(parameter_values['log10duration'], parameter_values['log10Z'],parameter_values['fesc'], parameter_values['fesc_LyA'], parameter_values['log10tauV'])):
+
+
+        sfh = SFH_({'duration': 10**log10duration * Myr })
+        Zh = ZH_({'log10Z': log10Z})
+
+        sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
+
+        galaxy = SEDGenerator(grid, sfzh)
+        galaxy.pacman(fesc = fesc, fesc_LyA = fesc_LyA, tauV = 10**log10tauV)
+
+        sed = galaxy.spectra['total'] # choose total SED
+        sed.get_fnu(cosmo, z) # generate observed frame spectra
+
+        # --- measure broadband fluxes
+        fluxes = sed.get_broadband_fluxes(fc)
+
         for filter in filters:
-            hf[f'fnu/{filter}'][i] = SED.total.Fnu[filter]
-        beta = SED.total.return_beta()
+            hf[f'fnu/{filter}'][i] = fluxes[filter].value
+
+        beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
-        print(i, beta, log10duration, log10Z, fesc, log10tau_V)
+        # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
+        # print(fluxes)
 
     return hf
+
+
 
 def make_observations(hf = False):
 
@@ -67,7 +87,7 @@ def make_observations(hf = False):
 
 
     hf['obs/filters'] = filters
-    hf['obs/pivwv'] = [F[filter].pivwv() for filter in filters]
+    hf['obs/pivwv'] = [fc.filter[filter].pivwv() for filter in filters]
 
     # --- rescale flux and add noise
 
@@ -76,6 +96,10 @@ def make_observations(hf = False):
     for filter in filters:
         hf['obs/'+filter+'/flux_err'] = np.ones(N)*noise[filter]
         hf['obs/'+filter+'/flux'] = hf['fnu/'+filter][()]*scaling + noise[filter]*np.random.normal(size=N)
+
+        snr = hf['obs/'+filter+'/flux'][()]/hf['obs/'+filter+'/flux_err'][()]
+        print(filter, np.median(snr))
+
 
     return hf
 
@@ -96,7 +120,7 @@ def run_eazy(hf = False):
     for template in templates:
 
         # --- initialise EAZY fitter
-        pz = eazy.Eazy(id, F)
+        pz = eazy.Eazy(id, fco)
 
         pz.params['TEMPLATES_FILE'] = f'templates/{template}.spectra.param'
         pz.params['TEMPLATE_COMBOS'] = template_combos[template]
@@ -122,29 +146,42 @@ if __name__ == "__main__":
 
     hf = False
 
+    scenario = 'constant'
+
     parameter_range = {}
-    parameter_range['log10duration'] = [6., 9.]
+
     parameter_range['log10Z'] = [-5., -1.4]
     parameter_range['fesc'] = [0., 1]
-    parameter_range['log10tau_V'] = [-2., 1.]
+    parameter_range['fesc_LyA'] = [0., 1]
+    parameter_range['log10tauV'] = [-2., 1.0]
+
+    if scenario == 'constant':
+        parameter_range['log10duration'] = [0., 3.]
+        SFH_ = SFH.Constant # constant star formation
+        ZH_ = ZH.deltaConstant # constant metallicity
+
 
     parameters = list(parameter_range.keys())
 
-    cosmo = flare.default_cosmo()
+    from astropy.cosmology import Planck18 as cosmo
 
-    scenario = 'constant'
-    SPS = models.SPS('BPASSv2.2.1.binary/ModSalpeter_300')
+    grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
+    grid = SpectralGrid(grid_name)
 
-    z = np.float(sys.argv[1])
-    N = int(sys.argv[2])
+    z = 7.+0.01*float(sys.argv[1])
+    N = 1000
 
-    filters = [f'JWST.NIRCAM.{f}' for f in ['F090W','F115W','F150W','F200W','F277W','F356W','F410M','F444W']]
-    F = flare.filters.add_filters(filters, new_lam = SPS.lam*(1.+z))
+    # --- calculate broadband luminosities
+    filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
+    fc = SVOFilterCollection(filters, new_lam = grid.lam * (1.+z)) # used for synthesizer
+    fco = SVOFilterCollection(filters) # used for EAZY
+
+    t1 = time.time()
 
     hf = generate_galaxies()
 
-    noise = {'JWST.NIRCAM.F090W': 6.67, 'JWST.NIRCAM.F115W': 6.08, 'JWST.NIRCAM.F150W': 4.83, 'JWST.NIRCAM.F200W': 3.98, 'JWST.NIRCAM.F277W': 4.70, 'JWST.NIRCAM.F356W': 3.91, 'JWST.NIRCAM.F410M': 7.56, 'JWST.NIRCAM.F444W': 5.95}
-    reference_filter = 'JWST.NIRCAM.F200W'
+    noise = {'JWST/NIRCam.F090W': 6.67, 'JWST/NIRCam.F115W': 6.08, 'JWST/NIRCam.F150W': 4.83, 'JWST/NIRCam.F200W': 3.98, 'JWST/NIRCam.F277W': 4.70, 'JWST/NIRCam.F356W': 3.91, 'JWST/NIRCam.F410M': 7.56, 'JWST/NIRCam.F444W': 5.95}
+    reference_filter = 'JWST/NIRCam.F200W'
     SNR = 20.
 
     hf = make_observations(hf = hf)
@@ -152,8 +189,11 @@ if __name__ == "__main__":
     templates = ['tweak_fsps_QSF_12_v3','Larson22', 'Wilkins22.bpass-2.2.1']
     # templates = ['Larson22']
     # templates = ['Wilkins22.bpass-2.2.1']
-    # templates = ['tweak_fsps_QSF_12_v3']
+    templates = ['tweak_fsps_QSF_12_v3']
 
     hf = run_eazy(hf = hf)
+
+    t2 = time.time()
+    print((t2-t1)/N)
 
     hf.flush()

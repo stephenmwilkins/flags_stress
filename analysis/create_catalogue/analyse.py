@@ -22,17 +22,19 @@ import flare.plt as fplt
 
 parameter_labels = {}
 parameter_labels['z'] = 'z'
-parameter_labels['log10tau_V'] = r'\log_{10}(\tau_V)'
+parameter_labels['log10tauV'] = r'\log_{10}(\tau_V)'
 parameter_labels['fesc'] = 'f_{esc}'
-parameter_labels['log10duration'] = '\log_{10}(t_{SF}/yr)'
+parameter_labels['fesc_LyA'] = 'f_{esc, LyA}'
+parameter_labels['log10duration'] = '\log_{10}(t_{SF}/Myr)'
 parameter_labels['log10Z'] = '\log_{10}(Z)'
 
 parameter_range = {}
 parameter_range['z'] = [5.01, 14.99]
-parameter_range['log10duration'] = [6.01, 8.99]
+parameter_range['log10duration'] = [0.01, 2.99]
 parameter_range['log10Z'] = [-4.99, -1.39]
 parameter_range['fesc'] = [0.01, 0.99]
-parameter_range['log10tau_V'] = [-1.99, 0.99]
+parameter_range['fesc_LyA'] = [0.01, 0.99]
+parameter_range['log10tauV'] = [-1.99, 0.99]
 
 
 def simple_plt():
@@ -140,7 +142,7 @@ class Analyser:
             z = self.dz
             cmap = cmr.get_sub_cmap('cmr.pride', 0.1, 0.9)
             vmin, vmax = -1.5, 1.5
-            zlabel = '(z-z_{pz})/z'
+            zlabel = '(z-z_{pz})/(1+z)'
 
         if p == 'beta':
             z = self.cat['diagnostics/beta']
@@ -296,19 +298,19 @@ class Analyser:
 if __name__ == "__main__":
 
     scenario = 'constant'
-    z = 7.00
+    z = 10.0
     template_set = 'tweak_fsps_QSF_12_v3'
-    template_set = 'Larson22'
-    model = f'data/{scenario}/{z:.2f}'
+    # template_set = 'Larson22'
+    model = f'out/{scenario}/{z:.2f}'
 
-    for template_set in ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22.bpass-2.2.1']:
+    for template_set in ['tweak_fsps_QSF_12_v3']:
 
         a = Analyser(model, template_set = template_set)
         # a.explore()
         # a.explore_icat()
         # a.dz_hist_plot()
 
-        parameters = ['z','log10duration','fesc','log10tau_V','log10Z']
+        parameters = ['z','log10duration','fesc','fesc_LyA', 'log10tauV','log10Z']
 
         # a.beta_dz_plot()
 
