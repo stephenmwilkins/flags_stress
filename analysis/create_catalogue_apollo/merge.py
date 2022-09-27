@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     for k in keys:
         print(k)
-        hfo[k] = np.empty(N)
+        hfo.create_dataset(k, np.empty(N))
 
 
     rn = 0
