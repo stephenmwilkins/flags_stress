@@ -21,17 +21,17 @@ if __name__ == "__main__":
 
     # --- calculate length of output array
     N = 0
-    for i in range(1000):
-        z = 7. + (0.01 * i)
+    #for i in range(1000):
+    #    z = 7. + (0.01 * i)
 
-        with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
-            N += len(hf['z'])
+    #    with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
+    #        N += len(hf['z'])
 
     print(f'total number of objects: {N}')
 
+    z = 7.00
 
-
-    with h5py.File(f'out/{scenario}/{z}.hf', 'r') as hf:
+    with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
 
         keys = list(hf.keys())
         hf.visit(append)
