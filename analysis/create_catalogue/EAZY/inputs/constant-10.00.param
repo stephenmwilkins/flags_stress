@@ -2,7 +2,7 @@ FILTERS_RES	 EAZY/inputs/constant-10.00.RES
 FILTER_FORMAT	 1
 SMOOTH_FILTERS	 n
 SMOOTH_SIGMA	 100.0
-TEMPLATES_FILE	 templates/tweak_fsps_QSF_12_v3.spectra.param
+TEMPLATES_FILE	 templates/Wilkins22_fsps-v3.2_Chabrier03.spectra.param
 TEMPLATE_COMBOS	 a
 NMF_TOLERANCE	 0.0001
 WAVELENGTH_FILE	 templates/EAZY_v1.1_lines/lambda_v1.1.def

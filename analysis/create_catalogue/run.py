@@ -26,7 +26,32 @@ np.random.seed(4484)
 template_combos = {}
 template_combos['tweak_fsps_QSF_12_v3'] = 'a'
 template_combos['Larson22'] = 'a'
-template_combos['Wilkins22.bpass-2.2.1'] = 'a'
+
+
+grid_ids = [
+    'bpass-v2.2.1-bin_100-100',
+    'bpass-v2.2.1-bin_100-300',
+    'bpass-v2.2.1-bin_135-100',
+    'bpass-v2.2.1-bin_135-300',
+    'bpass-v2.2.1-bin_135all-100',
+    'bpass-v2.2.1-bin_170-100',
+    'bpass-v2.2.1-bin_170-300',
+    'bpass-v2.2.1-bin_chab-100',
+    'bpass-v2.2.1-bin_chab-300',
+    'fsps-v3.2_Chabrier03',
+    'maraston-rhb_kroupa',
+    'maraston-rhb_salpeter',
+    'bc03_chabrier03',
+    'bc03-2016-Stelib_chabrier03',
+    'bc03-2016-BaSeL_chabrier03',
+    'bc03-2016-Miles_chabrier03',
+]
+
+for template_set in ['Wilkins22']:
+    for grid_id in grid_ids:
+        template_combos[f'{template_set}_{grid_id}'] = 'a'
+
+
 
 
 def generate_galaxies():
@@ -67,27 +92,22 @@ def generate_galaxies():
         sed = galaxy.spectra['total'] # choose total SED
         sed.get_fnu(cosmo, z) # generate observed frame spectra
 
-        plt.plot(sed.lamz, sed.fnu)
-        plt.show()
+        # plt.plot(sed.lamz, sed.fnu)
+        # plt.show()
 
         # --- measure broadband fluxes
         fluxes = sed.get_broadband_fluxes(fc)
 
-        for filter, flux in fluxes.items(): print(f'{filter}: {flux}')  # print broadband fluxes
+        
 
 
         for filter in filters:
             hf[f'fnu/{filter}'][i] = fluxes[filter].value
-            print(filter, fluxes[filter].value)
+            # print(filter, fluxes[filter].value)
 
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
         # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
-<<<<<<< HEAD
-
-=======
-        print(fluxes)
->>>>>>> 36e945233ac3cb7b124e772455eed7ec908da79f
 
     return hf
 
@@ -112,7 +132,7 @@ def make_observations(hf = False):
         hf['obs/'+filter+'/flux'] = hf['fnu/'+filter][()]*scaling + noise[filter]*np.random.normal(size=N)
 
         snr = hf['obs/'+filter+'/flux'][()]/hf['obs/'+filter+'/flux_err'][()]
-        print(filter, np.median(snr))
+        # print(filter, np.median(snr))
 
 
     return hf
@@ -180,17 +200,12 @@ if __name__ == "__main__":
     from astropy.cosmology import Planck18 as cosmo
 
     # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
-    grid_name = 'bpass-v2.2.1-bin_chab-100_cloudy-v17.03_log10Uref-2'
-    # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
+    # grid_name = 'bpass-v2.2.1-bin_chab-100_cloudy-v17.03_log10Uref-2'
+    grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-<<<<<<< HEAD
-    z = 10.
-    N = 100
-=======
     z = 10.0
     N = 10
->>>>>>> 36e945233ac3cb7b124e772455eed7ec908da79f
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
@@ -204,14 +219,11 @@ if __name__ == "__main__":
     reference_filter = 'JWST/NIRCam.F200W'
     SNR = 20.
 
-    # hf = make_observations(hf = hf)
-    #
-    # templates = ['tweak_fsps_QSF_12_v3','Larson22', 'Wilkins22.bpass-2.2.1']
-    # # templates = ['Larson22']
-    # # templates = ['Wilkins22.bpass-2.2.1']
-    # templates = ['tweak_fsps_QSF_12_v3']
-    #
-    # hf = run_eazy(hf = hf)
-    #
-    #
-    # hf.flush()
+    hf = make_observations(hf = hf)
+
+    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22_fsps-v3.2_Chabrier03']
+
+    hf = run_eazy(hf = hf)
+
+
+    hf.flush()
