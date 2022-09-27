@@ -5,10 +5,11 @@ import numpy as np
 import h5py
 
 
-keys = []
+datasets = []
 
-def append(k):
-    keys.append(k)
+def append(k, obj):
+    if type(obj)==h5py._hl.dataset.Dataset:
+        datasets.append(k)
 
 
 
@@ -34,9 +35,9 @@ if __name__ == "__main__":
     with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
         hf.visit(append)
 
-    for k in keys:
+    for k in datasets:
         print(k)
-        hfo.create_dataset(k, N)
+        hfo.create_dataset(k, data = np.empty(N))
 
 
     rn = 0
