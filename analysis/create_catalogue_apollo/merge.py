@@ -24,7 +24,7 @@ if __name__ == "__main__":
     for i in range(1000):
         z = 7. + (0.01 * i)
 
-        with h5py.File(f'out/{scenario}/{z}.hf', 'r') as hf:
+        with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
             N += len(hf['z'])
 
     print(f'total number of objects: {N}')
