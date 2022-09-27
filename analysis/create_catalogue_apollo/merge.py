@@ -33,7 +33,11 @@ if __name__ == "__main__":
     # --- make a list of keys
     z = 7.00
     with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
-        hf.visit(append)
+        hf.visititems(append)
+
+    datasets.remove('obs/filters')
+    datasets.remove('obs/pivwv')
+
 
     for k in datasets:
         print(k)
@@ -48,9 +52,10 @@ if __name__ == "__main__":
 
         with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
 
-            n += len(hf['parameters/z'])
+            n = len(hf['parameters/z'])
+            print(i, n)
 
-            for k in keys:
+            for k in datasets:
                 hfo[k][rn:rn+n] = hf[k][()]
 
             rn += n
