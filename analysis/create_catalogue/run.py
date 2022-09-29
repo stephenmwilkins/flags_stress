@@ -228,15 +228,16 @@ if __name__ == "__main__":
     fco = SVOFilterCollection(filters) # used for EAZY
 
 
-    hf = generate_galaxies()
+    # hf = generate_galaxies()
 
     noise = {'JWST/NIRCam.F090W': 6.67, 'JWST/NIRCam.F115W': 6.08, 'JWST/NIRCam.F150W': 4.83, 'JWST/NIRCam.F200W': 3.98, 'JWST/NIRCam.F277W': 4.70, 'JWST/NIRCam.F356W': 3.91, 'JWST/NIRCam.F410M': 7.56, 'JWST/NIRCam.F444W': 5.95}
     reference_filter = 'JWST/NIRCam.F200W'
     SNR = 20.
 
-    hf = make_observations(hf = hf)
+    # hf = make_observations(hf = hf)
 
     templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.1_fsps-v3.2_Chabrier03', 'Wilkins22-v0.2_fsps-v3.2_Chabrier03', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
+    templates = ['Wilkins22-v0.4_fsps-v3.2_Chabrier03', 'Wilkins22-v0.5_fsps-v3.2_Chabrier03']
 
     hf = run_eazy(hf = hf)
 
