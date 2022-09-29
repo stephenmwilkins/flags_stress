@@ -59,10 +59,10 @@ def generate_galaxies():
 
     # --- apply age of the Universe constraint
 
-    if sceanario == 'constant':
+    if scenario == 'constant':
         parameter_range['log10duration'][1] = np.log10(cosmo.age(z).to('yr').value)
 
-    if sceanario == 'instant':
+    if scenario == 'instant':
         parameter_range['log10age'][1] = np.log10(cosmo.age(z).to('yr').value)
 
     parameter_values = {}
@@ -184,10 +184,17 @@ def run_eazy(hf = False):
 
 if __name__ == "__main__":
 
+    scenario = sys.argv[1]
+    apollo = True
+
+    Path(f'out/{scenario}').mkdir(parents = True, exist_ok = True)
+
+    if apollo:
+        Path(f'output').mkdir(parents = True, exist_ok = True)
+
+
 
     hf = False
-
-    scenario = 'constant'
 
     parameter_range = {}
 
@@ -211,8 +218,8 @@ if __name__ == "__main__":
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 7.+0.01*(float(sys.argv[2])-1)
-    N = sys.argv[1]
+    z = 7.+0.01*(float(sys.argv[3])-1)
+    N = int(sys.argv[2])
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
