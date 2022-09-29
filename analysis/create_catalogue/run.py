@@ -1,26 +1,27 @@
 
 
-
+import sys
 import numpy as np
-
-import matplotlib.pyplot as plt
+import h5py
+from unyt import yr, Myr
+import time
 
 from synthesizer.filters import SVOFilterCollection
 from synthesizer.grid import SpectralGrid
 from synthesizer.binned import SFH, ZH, generate_sfzh, SEDGenerator
 from synthesizer.plt import single, single_histxy, mlabel
-from unyt import yr, Myr
-
-
-
-import h5py
 from flags.pz import eazy
-import time
+
+
+
+
+
+
 
 
 uniform = lambda low, high, N: np.random.uniform(low = low, high = high, size = N)
 
-np.random.seed(4484)
+# np.random.seed(4484)
 
 
 template_combos = {}
@@ -52,15 +53,23 @@ for template_set in ['Wilkins22']:
         template_combos[f'{template_set}_{grid_id}'] = 'a'
 
 
-
+# --- this has not been generalised
 
 def generate_galaxies():
+
+    # --- apply age of the Universe constraint
+
+    if sceanario == 'constant':
+        parameter_range['log10duration'][1] = np.log10(cosmo.age(z).to('yr').value)
+
+    if sceanario == 'instant':
+        parameter_range['log10age'][1] = np.log10(cosmo.age(z).to('yr').value)
 
     parameter_values = {}
     for parameter in parameters:
         parameter_values[parameter] = np.random.uniform(*parameter_range[parameter], size = N)
 
-    parameter_values['log10duration'][1] = np.log10(cosmo.age(z).to('yr').value)
+
 
     hf = h5py.File(f'out/{scenario}/{z:.2f}.hf', 'w')
 
@@ -74,42 +83,40 @@ def generate_galaxies():
     for filter in filters:
         hf[f'fnu/{filter}'] = np.zeros(N)
 
-    for i, (log10duration, log10Z, fesc, fesc_LyA, log10tauV) in enumerate(zip(parameter_values['log10duration'], parameter_values['log10Z'],parameter_values['fesc'], parameter_values['fesc_LyA'], parameter_values['log10tauV'])):
 
 
-        sfh = SFH_({'duration': 10**log10duration * Myr })
-        Zh = ZH_({'log10Z': log10Z})
+    for i, _ in enumerate(hf[f'parameters/z']):
 
+        if scenario == 'constant':
+            Zh = ZH_({'log10Z': parameter_values['log10Z'][i]})
+            sfh = SFH_({'duration': 10**parameter_values['log10duration'][i] * Myr })
+            sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
 
-        sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
-
-        tauV = 10**log10tauV
+        if scenario == 'instant':
+            sfzh = generate_instant_sfzh(grid.log10ages, grid.metallicities, parameter_values['log10age'][i], 10**parameter_values['log10Z'][i])
 
         galaxy = SEDGenerator(grid, sfzh)
-        galaxy.pacman(fesc = fesc, fesc_LyA = fesc_LyA, tauV = tauV)
-
+        galaxy.pacman(fesc = parameter_values['fesc'][i], fesc_LyA = parameter_values['fesc_LyA'][i], tauV = 10**parameter_values['log10tauV'][i])
 
         sed = galaxy.spectra['total'] # choose total SED
         sed.get_fnu(cosmo, z) # generate observed frame spectra
 
-        # plt.plot(sed.lamz, sed.fnu)
-        # plt.show()
-
         # --- measure broadband fluxes
         fluxes = sed.get_broadband_fluxes(fc)
 
-        
-
-
         for filter in filters:
             hf[f'fnu/{filter}'][i] = fluxes[filter].value
-            # print(filter, fluxes[filter].value)
+            print(filter, fluxes[filter].value)
 
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
         # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
+        # print(fluxes)
 
     return hf
+
+
+
 
 
 
@@ -132,7 +139,7 @@ def make_observations(hf = False):
         hf['obs/'+filter+'/flux'] = hf['fnu/'+filter][()]*scaling + noise[filter]*np.random.normal(size=N)
 
         snr = hf['obs/'+filter+'/flux'][()]/hf['obs/'+filter+'/flux_err'][()]
-        # print(filter, np.median(snr))
+        print(filter, np.median(snr))
 
 
     return hf
@@ -194,18 +201,18 @@ if __name__ == "__main__":
         SFH_ = SFH.Constant # constant star formation
         ZH_ = ZH.deltaConstant # constant metallicity
 
+    if scenario == 'instant':
+        parameter_range['log10duration'] = [0., 3.]
 
     parameters = list(parameter_range.keys())
 
     from astropy.cosmology import Planck18 as cosmo
 
-    # grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
-    # grid_name = 'bpass-v2.2.1-bin_chab-100_cloudy-v17.03_log10Uref-2'
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 10.0
-    N = 10
+    z = 7.+0.01*(float(sys.argv[2])-1)
+    N = sys.argv[1]
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
@@ -221,9 +228,8 @@ if __name__ == "__main__":
 
     hf = make_observations(hf = hf)
 
-    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22_fsps-v3.2_Chabrier03']
+    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.1_fsps-v3.2_Chabrier03', 'Wilkins22-v0.2_fsps-v3.2_Chabrier03', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
 
     hf = run_eazy(hf = hf)
-
 
     hf.flush()

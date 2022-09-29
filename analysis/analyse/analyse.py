@@ -107,7 +107,7 @@ class Analyser:
         self.icat.visititems(visitor_func)
 
 
-    def z_plot(self):
+    def z_plot(self, tag = ''):
 
         fig, ax = simple_plt(figsize = (3.5, 5.), bottom = 0.1, height = 0.85)
 
@@ -130,12 +130,12 @@ class Analyser:
         ax.set_xlabel(r'$\rm z $')
         ax.set_ylabel(r'$\rm z_{pz}$')
 
-        fn = f'{model}/z.pdf'
+        fn = f'{model}/z_{self.template_set}{tag}.pdf'
         print(fn)
         fig.savefig(fn)
 
 
-    def dz_plot(self):
+    def dz_plot(self, tag = ''):
 
         fig, ax = simple_plt()
 
@@ -155,13 +155,13 @@ class Analyser:
         ax.set_xlabel(r'$\rm z $')
         ax.set_ylabel(r'$\rm (z-z_{pz})/(1+z)$')
 
-        fn = f'{model}/dz.pdf'
+        fn = f'{model}/dz_{self.template_set}{tag}.pdf'
         print(fn)
         fig.savefig(fn)
 
 
 
-    def dz_hist_plot(self):
+    def dz_hist_plot(self, tag = ''):
 
         fig, ax = simple_plt()
 
@@ -172,12 +172,12 @@ class Analyser:
         ax.set_xlabel(r'$\rm (z-z_{pz})/(1+z)$')
         ax.set_ylabel(r'$\rm N$')
 
-        fn = f'{model}/dz_hist.pdf'
+        fn = f'{model}/dz_hist_{self.template_set}.pdf'
         print(fn)
         fig.savefig(fn)
 
 
-    def beta_dz_plot(self):
+    def beta_dz_plot(self, tag = ''):
 
         fig, ax = simple_plt()
 
@@ -188,11 +188,11 @@ class Analyser:
 
         ax.set_xlim([-3.5, 2.0])
 
-        fn = f'{model}/beta_dz.pdf'
+        fn = f'{model}/beta_dz{tag}.pdf'
         print(fn)
         fig.savefig(fn)
 
-    def corner(self, parameters, p, scatter = False, bins = 10):
+    def corner(self, parameters, p, scatter = False, bins = 10, tag = '', vmin = -1.5, vmax = 1.5):
 
         n = len(parameters)
 
@@ -211,7 +211,7 @@ class Analyser:
         if p == 'dz':
             z = self.dz[self.s]
             cmap = cmr.get_sub_cmap('cmr.pride', 0.1, 0.9)
-            vmin, vmax = -1.5, 1.5
+            # vmin, vmax = -1.5, 1.5
             zlabel = '(z-z_{pz})/(1+z)'
 
         if p == 'beta':
@@ -283,7 +283,7 @@ class Analyser:
 
                     ax.set_axis_off()
 
-        fn = f'{model}/corner_{p}_{self.template_set}.pdf'
+        fn = f'{model}/corner_{p}_{self.template_set}{tag}.pdf'
         print(fn)
         fig.savefig(fn)
 
@@ -372,7 +372,9 @@ if __name__ == "__main__":
     # template_set = 'Larson22'
     model = f'../create_catalogue_apollo/out/{scenario}/all'
 
-    for template_set in ['tweak_fsps_QSF_12_v3']:
+    template_sets = ['Wilkins22_fsps-v3.2_Chabrier03'] # + ['tweak_fsps_QSF_12_v3', 'Larson22']
+
+    for template_set in template_sets:
 
         a = Analyser(model, template_set = template_set)
         # a.explore()
@@ -380,8 +382,7 @@ if __name__ == "__main__":
 
         # a.apply_selection({'z': [9, 13]})
         # a.apply_selection({'log10Z': [-3, -1.7], 'log10tauV': [-2., -1], 'log10duration': [2, 3.]})
-
-        a.apply_selection({'z': [7, 9]})
+        a.apply_selection({'log10duration': [1, 3.]})
 
         a.z_plot()
         # a.dz_plot()
@@ -392,7 +393,8 @@ if __name__ == "__main__":
 
         # a.beta_dz_plot()
 
-        a.corner(parameters, 'dz')
+        a.apply_selection({'z': [12, 14]})
+        a.corner(parameters, 'dz', tag = 'z12-14', vmin = -0.1, vmax = 0.1)
         # a.corner(parameters, 'beta')
 
         # id = 3
