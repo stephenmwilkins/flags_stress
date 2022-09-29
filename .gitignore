@@ -1,0 +1,10 @@
+*.h5
+*.hf
+*.pz
+*.obs_sed
+*.temp_sed
+**/output/
+**/EAZY
+**templates
+*.pdf
+**/__pycache__
