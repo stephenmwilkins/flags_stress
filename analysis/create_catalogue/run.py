@@ -153,7 +153,7 @@ def run_eazy(hf = False):
     print(hf)
 
     if not hf:
-        hf = h5py.File(f'data/{scenario}/{z:.2f}.hf', 'a')
+        hf = h5py.File(f'out/{scenario}/{z:.2f}.hf', 'a')
     N = len(hf['parameters/z'][:])
 
 
