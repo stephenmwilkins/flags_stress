@@ -166,15 +166,15 @@ def run_eazy(hf = False):
 
         pz.params['TEMPLATES_FILE'] = f'templates/{template}.spectra.param'
         pz.params['TEMPLATE_COMBOS'] = template_combos[template]
-        pz.params['OBS_SED_FILE'] = 'y'                  # Write out observed SED/object, .obs_sed
-        pz.params['TEMP_SED_FILE'] = 'y'                   # Write out best template fit/object, .temp_sed
-        pz.params['POFZ_FILE'] = 'y'
+        pz.params['OBS_SED_FILE'] = 'n'                  # Write out observed SED/object, .obs_sed
+        pz.params['TEMP_SED_FILE'] = 'n'                   # Write out best template fit/object, .temp_sed
+        pz.params['POFZ_FILE'] = 'n'
 
         # --- create input catalogue from HDF5 object
         pz.create_input_catalogue_from_HDF5(hf)
         pz.run()
 
-        eazy.append_EAZY_output_to_HDF5(f'EAZY/outputs/{id}', hf, read_pz = True, read_template_norm = True, group_name = 'pz/eazy/'+template)
+        eazy.append_EAZY_output_to_HDF5(f'EAZY/outputs/{id}', hf, read_pz = False, read_template_norm = False, group_name = 'pz/eazy/'+template)
 
     return hf
 
