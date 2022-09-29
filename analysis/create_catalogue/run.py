@@ -28,7 +28,7 @@ uniform = lambda low, high, N: np.random.uniform(low = low, high = high, size = 
 template_combos = {}
 template_combos['tweak_fsps_QSF_12_v3'] = 'a'
 template_combos['Larson22'] = 'a'
-
+template_combos['beta'] = 'a'
 
 grid_ids = [
     'bpass-v2.2.1-bin_100-100',
@@ -49,7 +49,7 @@ grid_ids = [
     'bc03-2016-Miles_chabrier03',
 ]
 
-for v in ['0.1', '0.2', '0.3']:
+for v in ['0.1', '0.2', '0.3', '0.4', '0.5']:
     for grid_id in grid_ids:
         template_combos[f'Wilkins22-v{v}_{grid_id}'] = 'a'
 
