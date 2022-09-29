@@ -49,9 +49,9 @@ grid_ids = [
     'bc03-2016-Miles_chabrier03',
 ]
 
-for template_set in ['Wilkins22']:
+for v in ['0.1', '0.2', '0.3']:
     for grid_id in grid_ids:
-        template_combos[f'{template_set}_{grid_id}'] = 'a'
+        template_combos[f'Wilkins22-v{v}_{grid_id}'] = 'a'
 
 
 # --- this has not been generalised
