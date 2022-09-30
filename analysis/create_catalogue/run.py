@@ -205,12 +205,12 @@ if __name__ == "__main__":
     parameter_range['log10tauV'] = [-2., 1.0]
 
     if scenario == 'constant':
-        parameter_range['log10duration'] = [0., 3.]
+        parameter_range['log10duration'] = [1., 3.]
         SFH_ = SFH.Constant # constant star formation
         ZH_ = ZH.deltaConstant # constant metallicity
 
     if scenario == 'instant':
-        parameter_range['log10duration'] = [0., 3.]
+        parameter_range['log10age'] = [1., 3.]
 
     parameters = list(parameter_range.keys())
 
