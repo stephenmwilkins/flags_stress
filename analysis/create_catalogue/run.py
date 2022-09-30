@@ -237,7 +237,7 @@ if __name__ == "__main__":
     hf = make_observations(hf = hf)
 
     templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.1_fsps-v3.2_Chabrier03', 'Wilkins22-v0.2_fsps-v3.2_Chabrier03', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
-    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
+    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03', 'beta']
 
     hf = run_eazy(hf = hf)
 
