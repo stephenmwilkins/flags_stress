@@ -9,7 +9,7 @@ import time
 
 from synthesizer.filters import SVOFilterCollection
 from synthesizer.grid import SpectralGrid
-from synthesizer.binned import SFH, ZH, generate_sfzh, SEDGenerator
+from synthesizer.binned import SFH, ZH, generate_sfzh, generate_instant_sfzh, SEDGenerator
 from synthesizer.plt import single, single_histxy, mlabel
 from flags.pz import eazy
 
