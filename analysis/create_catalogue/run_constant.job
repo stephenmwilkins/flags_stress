@@ -27,4 +27,4 @@
 # needs to be copied, and then execute the program
 ######################################################################
 
-python run.py constant 100 $SGE_TASK_ID
+python run.py constant 1000 $SGE_TASK_ID
