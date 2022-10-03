@@ -8,7 +8,7 @@ import h5py
 
 if __name__ == "__main__":
 
-    scenario = 'constant'
+    scenario = sys.argv[1]
 
 
     # --- calculate length of output array
@@ -21,6 +21,6 @@ if __name__ == "__main__":
                 n = len(hf['parameters/z'])
                 if n != N:
                     print(f'failed N ({n})')
-                    print(f'qsub -t {i+1} -jc test run.sh')
+                    print(f'qsub -t {i+1} -jc test run_{scenario}.sh')
         except:
-            print(f'qsub -t {i+1} -jc test run.sh')
+            print(f'qsub -t {i+1} -jc test run_{scenario}.sh')
