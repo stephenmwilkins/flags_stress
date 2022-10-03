@@ -16,7 +16,7 @@ def append(k, obj):
 
 if __name__ == "__main__":
 
-    scenario = 'constant'
+    scenario = sys.argv[1]
 
     hfo = h5py.File(f'out/{scenario}/all.h5', 'w')
 
