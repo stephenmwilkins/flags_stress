@@ -21,6 +21,6 @@ if __name__ == "__main__":
                 n = len(hf['parameters/z'])
                 if n != N:
                     print(f'failed N ({n})')
-                    print(f'qsub -t {i+1} -jc test run_{scenario}.sh')
+                    print(f'qsub -t {i+1} -jc test run_{scenario}.job')
         except:
-            print(f'qsub -t {i+1} -jc test run_{scenario}.sh')
+            print(f'qsub -t {i+1} -jc test run_{scenario}.job')
