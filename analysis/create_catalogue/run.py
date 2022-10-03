@@ -68,6 +68,7 @@ def generate_galaxies():
 
     parameter_values = {}
     for parameter in parameters:
+        print(parameter, parameter_range[parameter])
         parameter_values[parameter] = np.random.uniform(*parameter_range[parameter], size = N)
 
 
@@ -94,7 +95,7 @@ def generate_galaxies():
             sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
 
         if scenario == 'instant':
-            sfzh = generate_instant_sfzh(grid.log10ages, grid.metallicities, parameter_values['log10age'][i], 10**parameter_values['log10Z'][i])
+            sfzh = generate_instant_sfzh(grid.log10ages, grid.metallicities, parameter_values['log10age'][i] + 6., 10**parameter_values['log10Z'][i])
 
         galaxy = SEDGenerator(grid, sfzh)
         galaxy.pacman(fesc = parameter_values['fesc'][i], fesc_LyA = parameter_values['fesc_LyA'][i], tauV = 10**parameter_values['log10tauV'][i])
