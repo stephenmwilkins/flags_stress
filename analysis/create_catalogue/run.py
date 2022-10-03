@@ -61,10 +61,10 @@ def generate_galaxies():
     # --- apply age of the Universe constraint
 
     if scenario == 'constant':
-        parameter_range['log10duration'][1] = np.log10(cosmo.age(z).to('yr').value)
+        parameter_range['log10duration'][1] = np.log10(cosmo.age(z).to('Myr').value)
 
     if scenario == 'instant':
-        parameter_range['log10age'][1] = np.log10(cosmo.age(z).to('yr').value)
+        parameter_range['log10age'][1] = np.log10(cosmo.age(z).to('Myr').value)
 
     parameter_values = {}
     for parameter in parameters:
