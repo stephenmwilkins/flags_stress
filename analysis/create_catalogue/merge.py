@@ -35,8 +35,8 @@ if __name__ == "__main__":
     with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
         hf.visititems(append)
 
-    datasets.remove('obs/filters')
-    datasets.remove('obs/pivwv')
+    # datasets.remove('obs/filters')
+    # datasets.remove('obs/pivwv')
 
 
     for k in datasets:
