@@ -61,10 +61,14 @@ def generate_galaxies():
     # --- apply age of the Universe constraint
 
     if scenario == 'constant':
-        parameter_range['log10duration'][1] = np.log10(cosmo.age(z).to('Myr').value)
+        parameter_range['log10duration'][1] = np.log10(max_age.to('Myr').value)
 
     if scenario == 'instant':
-        parameter_range['log10age'][1] = np.log10(cosmo.age(z).to('Myr').value)
+        parameter_range['log10age'][1] = np.log10(max_age.to('Myr').value)
+
+    if scenario == 'lognorm':
+        parameter_range['peak_age'][1] = max_age.to('Myr').value - 1.0  # breaks for ages == max_age
+
 
     parameter_values = {}
     for parameter in parameters:
@@ -81,6 +85,8 @@ def generate_galaxies():
         hf[f'parameters/{parameter}'] = parameter_values[parameter]
 
     hf[f'diagnostics/beta'] = np.zeros(N)
+    hf[f'metrics/age/mean'] = np.zeros(N)
+    hf[f'metrics/age/median'] = np.zeros(N)
 
     for filter in filters:
         hf[f'fnu/{filter}'] = np.zeros(N)
@@ -94,8 +100,27 @@ def generate_galaxies():
             sfh = SFH_({'duration': 10**parameter_values['log10duration'][i] * Myr })
             sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
 
+        if scenario == 'lognorm':
+            Zh = ZH_({'log10Z': parameter_values['log10Z'][i]})
+            sfh = SFH_({'max_age': max_age * Myr, 'tau': parameter_values['tau'][i], 'peak_age': parameter_values['peak_age'][i] * Myr })
+            sfzh = generate_sfzh(grid.log10ages, grid.metallicities, sfh, Zh, stellar_mass = 1E8)
+
         if scenario == 'instant':
             sfzh = generate_instant_sfzh(grid.log10ages, grid.metallicities, parameter_values['log10age'][i] + 6., 10**parameter_values['log10Z'][i])
+
+
+        # --- save ages
+
+        if scenario in ['constant', 'lognorm']:
+            hf[f'metrics/age/mean'][i] = sfh.calculate_mean_age().value # yr
+            hf[f'metrics/age/median'][i] = sfh.calculate_median_age().value # yr
+        if scenario == 'instant':
+            age = 10**(parameter_values['log10age'][i] + 6.) # yr
+            hf[f'metrics/age/mean'][i] = age
+            hf[f'metrics/age/median'][i] = age
+
+
+
 
         galaxy = SEDGenerator(grid, sfzh)
         galaxy.pacman(fesc = parameter_values['fesc'][i], fesc_LyA = parameter_values['fesc_LyA'][i], tauV = 10**parameter_values['log10tauV'][i])
@@ -108,10 +133,13 @@ def generate_galaxies():
 
         for filter in filters:
             hf[f'fnu/{filter}'][i] = fluxes[filter].value
-            print(filter, fluxes[filter].value)
+            # print(filter, fluxes[filter].value)
 
         beta = sed.return_beta()
         hf[f'diagnostics/beta'][i] = beta
+
+        hf[f'diagnostics/beta'][i] = beta
+
         # print(i, beta, log10duration, log10Z, fesc, fesc_LyA, log10tauV)
         # print(fluxes)
 
@@ -129,8 +157,8 @@ def make_observations(hf = False):
     N = len(hf['parameters/z'][:])
 
 
-    hf['obs/filters'] = filters
-    hf['obs/pivwv'] = [fc.filter[filter].pivwv() for filter in filters]
+    # hf['obs/filters'] = filters
+    # hf['obs/pivwv'] = [fc.filter[filter].pivwv() for filter in filters]
 
     # --- rescale flux and add noise
 
@@ -150,8 +178,6 @@ def make_observations(hf = False):
 
 
 def run_eazy(hf = False):
-
-    print(hf)
 
     if not hf:
         hf = h5py.File(f'out/{scenario}/{z:.2f}.hf', 'a')
@@ -210,6 +236,12 @@ if __name__ == "__main__":
         SFH_ = SFH.Constant # constant star formation
         ZH_ = ZH.deltaConstant # constant metallicity
 
+    if scenario == 'lognorm':
+        parameter_range['peak_age'] = [-500, 1000]
+        parameter_range['tau'] = [0.01, 0.99]
+        SFH_ = SFH.LogNormal # constant star formation
+        ZH_ = ZH.deltaConstant # constant metallicity
+
     if scenario == 'instant':
         parameter_range['log10age'] = [1., 3.]
 
@@ -222,6 +254,10 @@ if __name__ == "__main__":
 
     z = 7.+0.01*(float(sys.argv[3])-1)
     N = int(sys.argv[2])
+
+
+    max_age = cosmo.age(z)
+
 
     # --- calculate broadband luminosities
     filters = [f'JWST/NIRCam.{f}' for f in ['F090W', 'F115W','F150W','F200W','F277W','F356W','F410M','F444W']] # define a list of filter codes
@@ -239,6 +275,7 @@ if __name__ == "__main__":
 
     templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.1_fsps-v3.2_Chabrier03', 'Wilkins22-v0.2_fsps-v3.2_Chabrier03', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
     templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03', 'beta']
+    templates = ['Wilkins22-v0.3_fsps-v3.2_Chabrier03']
 
     hf = run_eazy(hf = hf)
 
