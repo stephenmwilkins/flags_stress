@@ -29,6 +29,7 @@ template_combos = {}
 template_combos['tweak_fsps_QSF_12_v3'] = 'a'
 template_combos['Larson22'] = 'a'
 template_combos['beta'] = 'a'
+template_combos['Augmented-v0.1'] = 'a'
 
 grid_ids = [
     'bpass-v2.2.1-bin_100-100',
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 0.01*(float(sys.argv[3])-1)
+    z = 0.01*(float(sys.argv[3]))
     N = int(sys.argv[2])
 
 
