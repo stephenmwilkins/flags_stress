@@ -252,7 +252,7 @@ if __name__ == "__main__":
     grid_name = 'fsps-v3.2_Chabrier03_cloudy-v17.03_log10Uref-2'
     grid = SpectralGrid(grid_name)
 
-    z = 7.+0.01*(float(sys.argv[3])-1)
+    z = 0.01*(float(sys.argv[3])-1)
     N = int(sys.argv[2])
 
 
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     hf = make_observations(hf = hf)
 
     templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.1_fsps-v3.2_Chabrier03', 'Wilkins22-v0.2_fsps-v3.2_Chabrier03', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03']
-    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03', 'beta']
+    templates = ['tweak_fsps_QSF_12_v3', 'Larson22', 'Wilkins22-v0.3_fsps-v3.2_Chabrier03', 'beta', 'Augmented-v0.1']
     # templates = ['Wilkins22-v0.3_fsps-v3.2_Chabrier03']
 
     hf = run_eazy(hf = hf)
