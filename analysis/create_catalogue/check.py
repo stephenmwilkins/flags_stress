@@ -12,9 +12,9 @@ if __name__ == "__main__":
 
 
     # --- calculate length of output array
-    N = 1000
+    N = 2000
     for i in range(1000):
-        z = 7. + (0.01 * i)
+        z = 0.01 * (i+1)
 
         try:
             with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
