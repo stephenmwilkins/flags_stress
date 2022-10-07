@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     # --- calculate length of output array
     N = 0
-    for i in range(2000):
+    for i in range(1750):
         z = 0.01 * (i+1)
         with h5py.File(f'out/{scenario}/{z:.2f}.hf', 'r') as hf:
             N += len(hf['parameters/z'])
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     rn = 0
 
-    for i in range(2000):
+    for i in range(1750):
 
         z = 0.01 * (i+1)
 

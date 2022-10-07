@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     # --- calculate length of output array
     N = 1000
-    for i in range(2000):
+    for i in range(1750):
         z = 0.01 * (i+1)
 
         try:
